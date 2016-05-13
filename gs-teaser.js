@@ -11,7 +11,7 @@ let express = require('express'),
           ' WHERE image_url IS NOT NULL ORDER BY id DESC LIMIT 24';
 
 app.get('/', (request, response) => {
-  response.sendFile(path.join(__dirname, 'gsteaser.html'));
+  response.sendFile(path.join(__dirname, 'gs-teaser.html'));
 });
 
 app.get('/news', (req, res) => {

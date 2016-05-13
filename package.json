@@ -1,8 +1,8 @@
 {
-  "name": "gsteaser",
+  "name": "gs-teaser",
   "version": "1.0.0",
   "description": "GeekSpeak teaser image generator",
-  "main": "gsteaser.js",
+  "main": "gs-teaser.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
