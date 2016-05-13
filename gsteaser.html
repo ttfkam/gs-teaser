@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="never">
+  <script id="entry-template" type="text/x-handlebars-template">
+   {{#each this}}
+    <li title="{{title}}"><img src="{{url}}"></li>
+   {{/each}}
+  </script>
+  <style>
+    html, body {
+      background: #FFF;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      background: linear-gradient(#DDD,#FFF);
+      color: white;
+      font: italic normal 50px serif;
+      letter-spacing: -2px;
+      margin: 0;
+      padding: 0 0 .1em .2em;
+      text-shadow: 0 0 2px #DDD, -1px -4px 8px #CCC;
+    }
+    label {
+      color: #AAA;
+      font: italic 20px serif;
+      text-shadow: 0 0 10px #9F9;
+      display: inline-block;
+      text-align: right;
+      width: 75px;
+    }
+    input[type=search] {
+      background: #EEE;
+      border: 2px groove #9C9;
+      font: bold 20px sans-serif;
+      width: calc(100% - 500px);
+    }
+    canvas {
+      background: #CCC;
+      box-shadow: 0 0 20px silver;
+      display: inline-block;
+      float: left;
+      height: 400px;
+      width: 400px;
+      vertical-align: top;
+      padding: 0;
+      margin: 40px 10px;
+    }
+    ul {
+      display: inline-block;
+      margin: 1em 0;
+      max-width: calc(100% - 420px);
+      overflow: scroll;
+      padding: 0;
+      vertical-align: top;
+      text-align: center;
+    }
+    ul:empty {
+      display: none;
+    }
+    #news {
+      max-height: 400px;
+    }
+    #wikipedia {
+      max-height: 200px;
+    }
+    li {
+      padding: 0;
+      margin: 0;
+      position: relative;
+      box-sizing: border-box;
+      width: 100px;
+      height: 100px;
+      display: inline-block;
+      vertical-align: top;
+      overflow: hidden;
+    }
+    li:after {
+      box-shadow: 0 0 10px #FFF inset,0 0 10px #FFF inset;
+      content: ' ';
+      height: 100%;
+      left: 0;
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+/*
+    p {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: calc(100% - 2px);
+      overflow: hidden;
+      color: #FFF;
+      text-shadow: 1px 1px 2px #000;
+      position: absolute;
+      bottom: 0px;
+      left: 1px;
+      padding: 4px 2px;
+      margin: 0;
+      background: rgba(0,0,0,.5);
+      box-sizing: border-box;
+      border-top: 3px solid rgba(255,255,255,.1);
+      letter-spacing: -.5px;
+      font: 11px serif;
+      text-align: center;
+      border-radius: 0 0 4px 4px;
+    }
+*/
+    img {
+      clip: rect(0px 100px 100px 0px);
+      height: 100px;
+    }
+  </style>
+<head>
+<body>
+
+<h1>GeekSpeak Teaser Image Creator</h1>
+
+<canvas height="800" width="800"></canvas>
+
+<label for="search">Search:</label>
+<input id="search" type="search" placeholder="ethernet">
+<ul id="wikipedia"></ul>
+<ul id="news"></ul>
+
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script src="https://oss.maxcdn.com/handlebarsjs/4.0.5/handlebars.min.js"></script>
+<script>
+  function initImage() {
+    var data = this.dataset,
+        ratio = Math.min(this.width / T_WIDTH, this.height / T_HEIGHT),
+        offset = Math.round(Math.min(this.width, this.height) / 2);
+    data.sWidth = Math.round(T_WIDTH * ratio);
+    data.sHeight = Math.round(T_HEIGHT * ratio);
+    data.sx = Math.round(this.width / 2) - offset;
+    data.sy = Math.round(this.height / 2) - offset;
+    drawImage(this, data.sx, data.sy, data.sWidth, data.sHeight);
+  }
+  
+  function drawImage(image, sx, sy, sWidth, sHeight) {
+    var coords = IMAGE_COORDS[image.dataset.quadrant];
+    if (coords == null) {
+      return;
+    }
+    CTX.drawImage(image, sx, sy, sWidth, sHeight,
+                  coords[0], coords[1], T_WIDTH, T_HEIGHT);
+  }
+
+/*
+  function imageExport(mimeType) {
+    return function(e) {
+      window.location.href = CANVAS.toDataURL(mimeType).replace(mimeType, "image/octet-stream");
+    }
+  }
+*/
+
+  function loadImage(src, quadrant) {
+    var image = new Image(),
+        data = image.dataset;
+    data.quadrant = quadrant;
+    image.onload = initImage;
+    image.src = src;
+  }
+  
+  const T_WIDTH = 388,
+        T_HEIGHT = T_WIDTH,
+        T_OFFSET_X = T_WIDTH / 2,
+        T_OFFSET_Y = T_HEIGHT / 2,
+        IMAGE_COORDS = [
+          [8,  8], [404,  8],
+          [8,404], [404,404]
+        ],
+        CANVAS = document.getElementsByTagName("canvas")[0],
+        CTX = CANVAS.getContext('2d');
+
+  CTX.fillStyle = "#FFF";
+  CTX.fillRect(0,0,800,800);
+  IMAGE_COORDS.forEach(function(coord) {
+    CTX.clearRect(coord[0], coord[1], T_WIDTH, T_HEIGHT);
+  });
+
+  function dragover(e) {
+    var box = CANVAS.getBoundingClientRect();
+    e.preventDefault();
+    // Set the dropEffect to move
+    e.dataTransfer.dropEffect = "move"
+  }
+  
+  function drop(e) {
+    e.preventDefault();
+    if (e.target !== CANVAS) {
+      return;
+    }
+    var box = CANVAS.getBoundingClientRect(),
+        halfHeight = Math.ceil(box.height / 2),
+        halfWidth = Math.ceil(box.width / 2),
+        quadrant = (2 * Math.floor(e.offsetY / halfHeight)) + Math.floor(e.offsetX / halfWidth);
+    e.dataTransfer.items[0].getAsString(function(str){
+      loadImage(str, quadrant);
+    });
+  }
+  
+  document.body.addEventListener("dragover", dragover, false);
+  document.body.addEventListener("drop", drop, false);
+
+  var entryTemplate = document.getElementById("entry-template").innerHTML;
+  var html = Handlebars.compile(entryTemplate);
+  $.getJSON("/news", function(data, status, xhr) {
+    document.getElementById("news").innerHTML = html(data);
+  });
+
+  var delay;
+
+  function loadWikipediaImages(search) {
+    let query = search.value.trim(),
+        wp = document.getElementById("wikipedia");;
+    if (!query) {
+      wp.innerHTML = '';
+      return;
+    }
+    $.getJSON("/wikipedia", {q:query}, function(data, status, xhr) {
+      wp.innerHTML = html(data);
+    });
+    //console.log('Loading ' + search.value);
+  }
+
+  document.getElementById("search").addEventListener('keyup', e => {
+    if (delay) {
+      clearTimeout(delay);
+    }
+    delay = setTimeout(loadWikipediaImages, 500, e.target);
+  }, false);
+</script>
+
+</body>
+</html>
